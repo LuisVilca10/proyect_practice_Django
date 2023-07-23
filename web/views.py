@@ -1,6 +1,9 @@
-from django.shortcuts import render, get_object_or_404
+from django.shortcuts import render,get_object_or_404, redirect
+from .carrito import Cart
 
 from .models import Categoria, Producto
+
+
 # Create your views here.
 #vitsa producto
 def index(request):
@@ -46,3 +49,42 @@ def productoDetalle(request, producto_id):
 
     return render(request, 'producto.html', context)
 
+
+"""carrito de compras"""
+
+
+def carrito(request):
+    return render(request, 'carrito.html')
+
+def agregarCarrito(request, producto_id):
+    #cantidad = 1
+
+    if request.method == 'POST':
+        cantidad = int(request.POST['cantidad'])
+    else:
+        cantidad = 1
+    objProducto = Producto.objects.get(pk=producto_id)
+    carritoProducto = Cart(request)
+    if objProducto.imagen and objProducto.imagen.file:
+        imagen_url = objProducto.imagen.url
+    else:
+        imagen_url = 'https://via.placeholder.com/150'
+    carritoProducto.add(objProducto, cantidad)
+
+    #print(request.session.get("cart"))
+    if request.method == 'GET':
+        return redirect('/')
+    return render(request, 'carrito.html')
+
+def eliminarProductoCarrito(request, producto_id):
+    objProducto = Producto.objects.get(pk=producto_id)
+    carritoProducto = Cart(request)
+    carritoProducto.delete(objProducto)
+    
+    return render(request, 'carrito.html')
+
+def limpiarCarrito(request):
+    carritoProducto = Cart(request)
+    carritoProducto.clear()
+    
+    return render(request, 'carrito.html')

@@ -8,6 +8,7 @@ from django.contrib.auth import login,logout,authenticate
 from django.contrib.auth.decorators import login_required
 from paypal.standard.forms import PayPalPaymentsForm
 from django.urls import reverse
+from django.core.mail import send_mail
 
 
 # Create your views here.
@@ -285,10 +286,25 @@ def confirmarPedido(request):
                 
             #registrar pedido
             nroPedido = ''
-            montoTotal = 0
+            montoTotal = float(request.session.get('cartMontoTotal'))
             nuevoPedido = Pedido()
             nuevoPedido.cliente = clientePedido
             nuevoPedido.save()
+
+             #registrar Detalle de Pedido
+            carritoPedido = request.session.get('cart')
+            for key,value in carritoPedido.items():
+                productoPedido = Producto.objects.get(pk=value['producto_id'])
+                nuevoPedidoDetalle = PedidoDetalle()
+                nuevoPedidoDetalle.pedido = nuevoPedido
+                nuevoPedidoDetalle.producto = productoPedido
+                nuevoPedidoDetalle.cantidad = int(value['cantidad'])
+                nuevoPedidoDetalle.subtotal = float(value['subtotal'])
+                nuevoPedidoDetalle.save()
+              
+                
+            carrito = Cart(request)
+            carrito.clear()
             
             
             #actualizar pedido
@@ -296,10 +312,53 @@ def confirmarPedido(request):
             nuevoPedido.nro_pedido = nroPedido
             nuevoPedido.monto_total = montoTotal
             nuevoPedido.save()
+            #registramos el id del pedido en la sesión
+            request.session['pedidoId'] = nuevoPedido.id
+
             
-                
+            #CREAMOS EL BOTON DE PAYPAL
+            request.session['paypal_pid'] = nuevoPedido.id
+            
+            paypal_dict = {
+                "business": "sb-kco47c26748133@business.example.com",
+                "amount": montoTotal,
+                "item_name": "PEDIDO NRO : " + nroPedido,
+                "invoice": nroPedido,
+                "notify_url": request.build_absolute_uri(reverse('paypal-ipn')),
+                "return": request.build_absolute_uri('/gracias'),
+                "cancel_return": request.build_absolute_uri('/')
+            }
+
+            # Create the instance.
+            formPaypal = PayPalPaymentsForm(initial=paypal_dict)
+
             context = {
                 'pedido':nuevoPedido,
+                'form':formPaypal
             }
         
     return render(request,'compra.html', context)
+
+@login_required(login_url='/login')
+def gracias(request):
+    paypalId = request.GET.get('PayerID',None)
+    if paypalId is not None:
+        pedidoId = request.session.get('pedidoId')
+        pedido = Pedido.objects.get(pk=pedidoId)
+        pedido.estado = '1'
+        pedido.save()
+        send_mail(
+                'Gracias por tu compra',
+                'tu nro de pedido es ' + pedido.nro_pedido,
+                'juamani123@gmail.com',
+                [request.user.email,'martinhilasaca7@gmail.com'],
+                fail_silently=False,
+            )        
+        #envio de correo
+        context = {
+            'pedido' : pedido
+        }
+    else:
+        return redirect('/')
+        
+    return render(request,'gracias.html', context)

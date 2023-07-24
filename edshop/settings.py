@@ -136,3 +136,7 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 MEDIA_URL = '/media/'
 PAYPAL_TEST = True
 CRISPY_TEMPLATE_PACK = 'bootstrap4'
+EMAIL_HOST = 'sandbox.smtp.mailtrap.io'
+EMAIL_HOST_USER = '12c1c100149e42'
+EMAIL_HOST_PASSWORD = '8ab5ef28545fd7'
+EMAIL_PORT = '2525'

@@ -19,5 +19,6 @@ urlpatterns = [
     path('logout/',views.logoutUsuario,name='logoutUsuario'),
     path('registrarPedido/',views.registrarPedido,name='registrarPedido'),
     path('pruebapaypal/', views.view_that_asks_for_money, name='pruebapaypal'),
-    path('confirmarPedido/',views.confirmarPedido,name='confirmarPedido')
+    path('confirmarPedido/',views.confirmarPedido,name='confirmarPedido'),
+    path('gracias',views.gracias,name='gracias')
 ] 

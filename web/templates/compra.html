@@ -7,8 +7,8 @@
     </ul>
 <div class="page-styling">
     <div class="woocommerce prod-litems section-list">
-            <h2>Fecha : 2023-01-01</h2>
-            
+            <h2>Fecha : {{pedido.fecha_registro}}</h2>
+            {% for detalle in pedido.pedidodetalle_set.all %}
             <article class="prod-li sectls">
                 <div class="prod-li-inner">
                     <a href="#" class="prod-li-img">
@@ -41,11 +41,11 @@
                     </div>
                 </div>
             </article>
-           
+            {% endfor %}
     </div>
     <div class="cart-actions">
             <div class="cart-collaterals">
-                {{formPedidoPaypal.render}}
+                {{form.render}}
                 <div class="order-total">
                     <p class="cart-totals-ttl">Total</p>
                     <p class="cart-totals-val">${{pedido.monto_total}}</p>
